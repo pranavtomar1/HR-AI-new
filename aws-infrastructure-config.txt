@@ -1,0 +1,44 @@
+=================================================
+AWS Infrastructure Configuration
+=================================================
+
+Region: us-east-1
+AWS Account ID: 102382809436
+
+VPC Configuration:
+- VPC ID: vpc-0cbc55779d448937c
+- Subnet ID: subnet-095d198a3ee99c79e
+- Internet Gateway ID: igw-0a34b0fbf59a3611e
+- Route Table ID: rtb-0a3fc3f034bbbc60c
+
+Security Groups:
+- Jenkins SG: sg-0b84e18ed81219018
+- Kubernetes SG: sg-017752a5e0178e2c0
+
+EC2 Instances:
+- Jenkins Instance: i-028d5cc458f7fa9ba
+  Public IP: 3.235.134.56
+  
+- K8s Master Instance: i-04c0860b4f95bc381
+  Public IP: 44.203.248.157
+  Private IP: 10.0.1.135
+  
+- K8s Worker Instance: i-008a783ec38f7ffdb
+  Public IP: 3.216.36.110
+  Private IP: 10.0.1.40
+
+ECR Repository:
+- Repository URI: 102382809436.dkr.ecr.us-east-1.amazonaws.com/hr-ai
+
+SSH Key: hr-ai-key.pem
+
+=================================================
+Access Commands:
+=================================================
+SSH to Jenkins: ssh -i hr-ai-key.pem ubuntu@3.235.134.56
+SSH to K8s Master: ssh -i hr-ai-key.pem ubuntu@44.203.248.157
+SSH to K8s Worker: ssh -i hr-ai-key.pem ubuntu@3.216.36.110
+
+Jenkins Web UI: http://3.235.134.56:8080
+
+=================================================

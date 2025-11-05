@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard - HR-AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand h2 {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+            padding: 2rem 0;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 1rem 2rem;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #f1f5f9;
+            color: #3b82f6;
+            border-right: 3px solid #3b82f6;
+        }
+
+        .content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+            color: #64748b;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: 400px;
+        }
+
+        .chart-container h3 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        /* Tables */
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .form-buttons .btn {
+            flex: 1;
+        }
+
+        /* Status badges */
+        .status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-in_progress {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-pending {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Performance Analysis */
+        .performance-analysis {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .performance-metric {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .performance-metric .label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .performance-metric .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .ai-reasoning {
+            background: #f0f9ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .recommendations-list {
+            background: #f0fdf4;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid #16a34a;
+        }
+
+        .recommendations-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .recommendations-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #dcfce7;
+        }
+
+        .recommendations-list li:last-child {
+            border-bottom: none;
+        }
+
+        .recommendations-list li:before {
+            content: "💡 ";
+            margin-right: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 1rem 0;
+            }
+            
+            .nav-links {
+                display: flex;
+                overflow-x: auto;
+                padding: 0 1rem;
+            }
+            
+            .nav-links li {
+                white-space: nowrap;
+                margin-right: 0.5rem;
+            }
+            
+            .nav-link {
+                padding: 0.75rem 1rem;
+                border-radius: 6px;
+            }
+            
+            .nav-link.active {
+                border-right: none;
+                background: #3b82f6;
+                color: white;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>🚀 HR-AI Dashboard</h2>
+        </div>
+        <div class="nav-menu">
+            <span class="user-info">Welcome, <span id="username"></span></span>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link active" onclick="showSection('overview')">📊 Overview</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('achievements')">🏆 Achievements</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('tasks')">📋 Tasks</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('metrics')">📈 Metrics</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('performance')">🤖 AI Analysis</a></li>
+            </ul>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">
+            <!-- Overview Section -->
+            <section id="overview" class="section active">
+                <div class="section-header">
+                    <h2>Performance Overview</h2>
+                    <p>Your performance summary and key metrics</p>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Total Achievements</h3>
+                        <div class="metric-value" id="totalAchievements">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Tasks Completed</h3>
+                        <div class="metric-value" id="totalTasks">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Average Impact Score</h3>
+                        <div class="metric-value" id="avgImpact">0.0</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Target Achievement</h3>
+                        <div class="metric-value" id="targetAchievement">0%</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>📈 Monthly Performance Trend</h3>
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>🎯 Achievement Impact Distribution</h3>
+                        <canvas id="impactChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Achievements Section -->
+            <section id="achievements" class="section">
+                <div class="section-header">
+                    <h2>Achievements</h2>
+                    <button class="btn btn-primary" onclick="showModal('achievementModal')">➕ Add Achievement</button>
+                </div>
+                
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Impact Score</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="achievementsTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Tasks Section -->
+            <section id="tasks" class="section">
+                <div class="section-header">
+                    <h2>Tasks & Activities</h2>
+                    <button class="btn btn-primary" onclick="showModal('taskModal')">➕ Log Task</button>
+                </div>
+                
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Hours Spent</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasksTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Metrics Section -->
+            <section id="metrics" class="section">
+                <div class="section-header">
+                    <h2>Performance Metrics</h2>
+                    <button class="btn btn-primary" onclick="showModal('metricModal')">➕ Add Metric</button>
+                </div>
+                
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric Type</th>
+                                <th>Value</th>
+                                <th>Target</th>
+                                <th>Achievement %</th>
+                                <th>Period</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metricsTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Performance Analysis Section -->
+            <section id="performance" class="section">
+                <div class="section-header">
+                    <h2>🤖 AI Performance Analysis</h2>
+                    <p>AI-powered insights about your performance and career growth</p>
+                </div>
+                
+                <div id="performanceAnalysisContent">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Achievement Modal -->
+    <div id="achievementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🏆 Add Achievement</h3>
+                <span class="close" onclick="hideModal('achievementModal')">&times;</span>
+            </div>
+            <form id="achievementForm">
+                <div class="form-group">
+                    <label for="achievementTitle">Title</label>
+                    <input type="text" id="achievementTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="achievementCategory">Category</label>
+                    <select id="achievementCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Project Delivery">Project Delivery</option>
+                        <option value="Quality">Quality Improvement</option>
+                        <option value="Innovation">Innovation</option>
+                        <option value="Leadership">Leadership</option>
+                        <option value="Customer Service">Customer Service</option>
+                        <option value="Sales">Sales Achievement</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="achievementDescription">Description</label>
+                    <textarea id="achievementDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="achievementImpact">Impact Score (1-10)</label>
+                    <input type="number" id="achievementImpact" min="1" max="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="achievementDate">Date Achieved</label>
+                    <input type="date" id="achievementDate" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Add Achievement</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('achievementModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Log Task</h3>
+                <span class="close" onclick="hideModal('taskModal')">&times;</span>
+            </div>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Title</label>
+                    <input type="text" id="taskTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskHours">Hours Spent</label>
+                    <input type="number" id="taskHours" step="0.5" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskStatus">Status</label>
+                    <select id="taskStatus" required>
+                        <option value="completed">Completed</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskDate">Date</label>
+                    <input type="date" id="taskDate" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Log Task</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('taskModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Metric Modal -->
+    <div id="metricModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📈 Add Performance Metric</h3>
+                <span class="close" onclick="hideModal('metricModal')">&times;</span>
+            </div>
+            <form id="metricForm">
+                <div class="form-group">
+                    <label for="metricType">Metric Type</label>
+                    <select id="metricType" required>
+                        <option value="">Select Metric Type</option>
+                        <option value="Sales Revenue">Sales Revenue</option>
+                        <option value="Projects Completed">Projects Completed</option>
+                        <option value="Customer Satisfaction">Customer Satisfaction</option>
+                        <option value="Code Quality Score">Code Quality Score</option>
+                        <option value="Team Productivity">Team Productivity</option>
+                        <option value="Cost Savings">Cost Savings</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="metricValue">Actual Value</label>
+                    <input type="number" id="metricValue" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="metricTarget">Target Value</label>
+                    <input type="number" id="metricTarget" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="metricMonth">Month</label>
+                    <select id="metricMonth" required>
+                        <option value="">Select Month</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="metricYear">Year</label>
+                    <input type="number" id="metricYear" value="2025" min="2020" max="2030" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Add Metric</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('metricModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="employee-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard - HR-AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand h2 {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.15s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+            padding: 2rem 0;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 1rem 2rem;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #f1f5f9;
+            color: #3b82f6;
+            border-right: 3px solid #3b82f6;
+        }
+
+        .content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+            color: #64748b;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: 400px;
+        }
+
+        .chart-container h3 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        /* Tables */
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Employee Cards */
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .employee-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .employee-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .employee-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .employee-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .employee-info h4 {
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .employee-info p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .employee-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .employee-metric {
+            text-align: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .employee-metric .label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .employee-metric .value {
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .employee-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .employee-actions .btn {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        /* AI Recommendations */
+        .recommendation-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .recommendation-header {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 1.5rem;
+        }
+
+        .recommendation-content {
+            padding: 1.5rem;
+        }
+
+        .recommendation-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .recommendation-metric {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .recommendation-metric .label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation-metric .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .recommendation-reasoning {
+            background: #f0f9ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            margin: 1rem 0;
+        }
+
+        .recommendation-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Leaderboard */
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+        }
+
+        .leaderboard-rank {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+            width: 60px;
+            text-align: center;
+        }
+
+        .leaderboard-rank.gold {
+            color: #f59e0b;
+        }
+
+        .leaderboard-rank.silver {
+            color: #64748b;
+        }
+
+        .leaderboard-rank.bronze {
+            color: #f97316;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+            margin-left: 1rem;
+        }
+
+        .leaderboard-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .leaderboard-department {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-score {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #16a34a;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .close {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 1rem 0;
+            }
+            
+            .nav-links {
+                display: flex;
+                overflow-x: auto;
+                padding: 0 1rem;
+            }
+            
+            .nav-links li {
+                white-space: nowrap;
+                margin-right: 0.5rem;
+            }
+            
+            .nav-link {
+                padding: 0.75rem 1rem;
+                border-radius: 6px;
+            }
+            
+            .nav-link.active {
+                border-right: none;
+                background: #3b82f6;
+                color: white;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .employee-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>🚀 HR-AI Dashboard</h2>
+        </div>
+        <div class="nav-menu">
+            <span class="user-info">HR Admin - <span id="username"></span></span>
+            <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link active" onclick="showSection('overview')">📊 Overview</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('employees')">👥 Employees</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('analytics')">📈 Analytics</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('recommendations')">🤖 AI Recommendations</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('leaderboard')">🏆 Leaderboard</a></li>
+            </ul>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">
+            <!-- Overview Section -->
+            <section id="overview" class="section active">
+                <div class="section-header">
+                    <h2>HR Overview</h2>
+                    <p>Company-wide performance metrics and insights</p>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Total Employees</h3>
+                        <div class="metric-value" id="totalEmployees">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Average Performance</h3>
+                        <div class="metric-value" id="avgPerformance">0.0</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Top Performers</h3>
+                        <div class="metric-value" id="topPerformers">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Total Achievements</h3>
+                        <div class="metric-value" id="totalAchievements">0</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>📊 Performance Distribution</h3>
+                        <canvas id="performanceDistribution"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>📈 Department Comparison</h3>
+                        <canvas id="departmentComparison"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Employees Section -->
+            <section id="employees" class="section">
+                <div class="section-header">
+                    <h2>Employee Management</h2>
+                    <p>Overview of all employees and their performance</p>
+                </div>
+                
+                <div id="employeeGrid" class="employee-grid">
+                    <!-- Dynamic employee cards will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics" class="section">
+                <div class="section-header">
+                    <h2>Performance Analytics</h2>
+                    <p>Detailed analytics and performance insights</p>
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>📊 Achievement Impact Analysis</h3>
+                        <canvas id="achievementAnalysis"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>📈 Monthly Performance Trends</h3>
+                        <canvas id="monthlyTrends"></canvas>
+                    </div>
+                </div>
+                
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Department</th>
+                                <th>Performance Score</th>
+                                <th>Achievements</th>
+                                <th>Target Achievement</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analyticsTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- AI Recommendations Section -->
+            <section id="recommendations" class="section">
+                <div class="section-header">
+                    <h2>🤖 AI Salary Recommendations</h2>
+                    <p>AI-powered salary increment and promotion recommendations</p>
+                    <button class="btn btn-primary" onclick="generateAllRecommendations()">Generate All Recommendations</button>
+                </div>
+                
+                <div class="recommendation-card" style="background: #f0f9ff; border: 1px solid #3b82f6; margin-bottom: 2rem;">
+                    <div style="padding: 1.5rem;">
+                        <h4 style="color: #3b82f6; margin-bottom: 1rem;">🔍 Transparency & Fairness</h4>
+                        <p><strong>Our AI ensures:</strong></p>
+                        <ul style="margin: 1rem 0; padding-left: 2rem;">
+                            <li>Bias-free analysis based solely on performance data</li>
+                            <li>Transparent calculations that employees can review</li>
+                            <li>Fair peer comparisons across similar roles</li>
+                            <li>Explainable recommendations with detailed reasoning</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div id="recommendationsContainer">
+                    <!-- AI recommendations will be displayed here -->
+                </div>
+            </section>
+
+            <!-- Leaderboard Section -->
+            <section id="leaderboard" class="section">
+                <div class="section-header">
+                    <h2>🏆 Performance Leaderboard</h2>
+                    <p>Top performing employees across different categories</p>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="showLeaderboard('overall')">Overall Performance</button>
+                    <button class="btn btn-secondary" onclick="showLeaderboard('achievements')">Most Achievements</button>
+                    <button class="btn btn-secondary" onclick="showLeaderboard('impact')">Highest Impact</button>
+                    <button class="btn btn-secondary" onclick="showLeaderboard('efficiency')">Most Efficient</button>
+                </div>
+                
+                <div id="leaderboardContent">
+                    <!-- Leaderboard items will be displayed here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Employee Detail Modal -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="employeeModalTitle">Employee Details</h3>
+                <span class="close" onclick="hideModal('employeeModal')">&times;</span>
+            </div>
+            <div id="employeeModalContent">
+                <!-- Employee details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendation Modal -->
+    <div id="recommendationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="recommendationModalTitle">AI Recommendation Details</h3>
+                <span class="close" onclick="hideModal('recommendationModal')">&times;</span>
+            </div>
+            <div id="recommendationModalContent">
+                <!-- Recommendation details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="hr-dashboard.js"></script>
+</body>
+</html>
